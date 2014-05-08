@@ -24,6 +24,8 @@
 #include <linux/hid.h>
 #include <asm/unaligned.h>
 
+#include "u_f.h"
+
 #include <linux/usb/composite.h>
 #include <linux/usb/functionfs.h>
 
