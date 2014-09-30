@@ -282,6 +282,7 @@ static void hid_irq_in(struct urb *urb)
 		usbhid->retry_delay = 0;
 		if ((hid->quirks & HID_QUIRK_ALWAYS_POLL) && !hid->open)
 			break;
+		if (!test_bit(HID_RESUME_RUNNING, &usbhid->iofl)) {
 		status = hid_input_report(urb->context, HID_INPUT_REPORT,
 				 urb->transfer_buffer,
 				 urb->actual_length, 1);
@@ -310,6 +311,7 @@ static void hid_irq_in(struct urb *urb)
 			set_bit(HID_KEYS_PRESSED, &usbhid->iofl);
 		else
 			clear_bit(HID_KEYS_PRESSED, &usbhid->iofl);
+	}
 		break;
 	case -EPIPE:		/* stall */
 #ifdef CONFIG_USB_DEBUG_DETAILED_LOG
@@ -722,6 +724,7 @@ int usbhid_open(struct hid_device *hid)
 			goto done;
 		}
 		usbhid->intf->needs_remote_wakeup = 1;
+		set_bit(HID_RESUME_RUNNING, &usbhid->iofl);
 		res = hid_start_in(hid);
 		if (res) {
 			if (res != -ENOSPC) {
@@ -735,6 +738,15 @@ int usbhid_open(struct hid_device *hid)
 			}
 		}
 		usb_autopm_put_interface(usbhid->intf);
+
+		/*
+		 * In case events are generated while nobody was listening,
+		 * some are released when the device is re-opened.
+		 * Wait 50 msec for the queue to empty before allowing events
+		 * to go through hid.
+		 */
+		msleep(50);
+		clear_bit(HID_RESUME_RUNNING, &usbhid->iofl);
 	}
 done:
 	mutex_unlock(&hid_open_mut);
