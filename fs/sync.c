@@ -472,7 +472,7 @@ SYSCALL_DEFINE1(syncfs, int, fd)
 
 	if (!f.file)
 		return -EBADF;
-	sb = f.file->f_dentry->d_sb;
+	sb = f.file->f_path.dentry->d_sb;
 
 #ifndef CONFIG_SAMSUNG_PRODUCT_SHIP
 	printk("sync logger: syncfs(%s) called by %s[%u] (tgid:%u)\n",
