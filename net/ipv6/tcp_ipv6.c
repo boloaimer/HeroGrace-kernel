@@ -1529,6 +1529,7 @@ int tcp_v6_do_rcv(struct sock *sk, struct sk_buff *skb)
 		struct dst_entry *dst = sk->sk_rx_dst;
 
 		sock_rps_save_rxhash(sk, skb);
+		sk_mark_napi_id(sk, skb);
 		if (dst) {
 			if (inet_sk(sk)->rx_dst_ifindex != skb->skb_iif ||
 			    dst->ops->check(dst, np->rx_dst_cookie) == NULL) {
@@ -1558,6 +1559,7 @@ int tcp_v6_do_rcv(struct sock *sk, struct sk_buff *skb)
 		 */
 		if (nsk != sk) {
 			sock_rps_save_rxhash(nsk, skb);
+			sk_mark_napi_id(sk, skb);
 			if (tcp_child_process(sk, nsk, skb))
 				goto reset;
 			if (opt_skb)
@@ -1727,7 +1729,6 @@ process:
 	if (sk_filter(sk, skb))
 		goto discard_and_relse;
 
-	sk_mark_napi_id(sk, skb);
 	skb->dev = NULL;
 
 #ifdef CONFIG_MPTCP
