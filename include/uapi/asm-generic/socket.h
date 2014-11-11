@@ -82,6 +82,8 @@
 
 #define SO_BPF_EXTENSIONS	48
 
+#define SO_INCOMING_CPU         49
+
 /* START_OF_KNOX_NPA */
 #define SO_SET_DOMAIN_NAME	55
 #define SO_SET_DNS_UID		56
@@ -90,4 +92,5 @@
 /* START_OF_KNOX_NPA */
 #define SO_SET_DNS_PID		58
 /* END_OF_KNOX_NPA */
+
 #endif /* __ASM_GENERIC_SOCKET_H */
