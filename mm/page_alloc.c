@@ -955,6 +955,9 @@ static bool free_pages_prepare(struct page *page, unsigned int order)
 	int page_num;
 #endif
 
+	VM_BUG_ON_PAGE(PageTail(page), page);
+	VM_BUG_ON_PAGE(PageHead(page) && compound_order(page) != order, page);
+
 	trace_mm_page_free(page, order);
 	kmemcheck_free_shadow(page, order);
 
