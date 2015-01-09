@@ -361,10 +361,10 @@ static int xhci_abort_cmd_ring(struct xhci_hcd *xhci, unsigned long flags)
 	 * larger problems with the xHC and assert HCRST.
 	 */
 #ifdef CONFIG_USB_HOST_SAMSUNG_FEATURE
-	ret = xhci_handshake(xhci, &xhci->op_regs->cmd_ring,
+	ret = xhci_handshake(&xhci->op_regs->cmd_ring,
 			CMD_RING_RUNNING, 0, 5 * 100 * 1000);
 #else
-		ret = xhci_handshake(xhci, &xhci->op_regs->cmd_ring,
+	ret = xhci_handshake(&xhci->op_regs->cmd_ring,
 			CMD_RING_RUNNING, 0, 5 * 1000 * 1000);
 #endif
 
@@ -373,11 +373,12 @@ static int xhci_abort_cmd_ring(struct xhci_hcd *xhci, unsigned long flags)
 		xhci_write_64(xhci, temp_64 | CMD_RING_ABORT,
 			      &xhci->op_regs->cmd_ring);
 		udelay(1000);
+
 #ifdef CONFIG_USB_HOST_SAMSUNG_FEATURE
-		ret = xhci_handshake(xhci, &xhci->op_regs->cmd_ring,
+		ret = xhci_handshake(&xhci->op_regs->cmd_ring,
 				     CMD_RING_RUNNING, 0, 3 * 100 * 1000);
 #else
-		ret = xhci_handshake(xhci, &xhci->op_regs->cmd_ring,
+		ret = xhci_handshake(&xhci->op_regs->cmd_ring,
 				     CMD_RING_RUNNING, 0, 3 * 1000 * 1000);
 #endif
 		if (ret < 0) {
