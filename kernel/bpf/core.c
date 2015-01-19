@@ -244,7 +244,7 @@ bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
 
 void bpf_jit_binary_free(struct bpf_binary_header *hdr)
 {
-	module_free(NULL, hdr);
+	module_memfree(hdr);
 }
 
 static int bpf_jit_blind_insn(const struct bpf_insn *from,
