@@ -226,6 +226,7 @@ struct dentry_operations {
 #define DCACHE_SYMLINK_TYPE		0x00600000 /* Symlink (or fallthru to such) */
 
 #define DCACHE_MAY_FREE			0x00800000
+#define DCACHE_FALLTHRU			0x01000000 /* Fall through to lower layer */
 #define DCACHE_OP_SELECT_INODE		0x02000000 /* Unioned entry: dcache op selects inode */
 #define DCACHE_OP_REAL			0x08000000
 
@@ -481,6 +482,14 @@ static inline bool d_is_positive(const struct dentry *dentry)
 {
 	return !d_is_negative(dentry);
 }
+
+extern void d_set_fallthru(struct dentry *dentry);
+
+static inline bool d_is_fallthru(const struct dentry *dentry)
+{
+	return dentry->d_flags & DCACHE_FALLTHRU;
+}
+
 
 extern int sysctl_vfs_cache_pressure;
 
