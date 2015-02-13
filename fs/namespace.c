@@ -258,7 +258,7 @@ static struct mount *alloc_vfsmnt(const char *name)
 			goto out_free_cache;
 #endif
 		if (name) {
-			mnt->mnt_devname = kstrdup(name, GFP_KERNEL);
+			mnt->mnt_devname = kstrdup_const(name, GFP_KERNEL);
 			if (!mnt->mnt_devname)
 				goto out_free_id;
 		}
@@ -297,7 +297,7 @@ static struct mount *alloc_vfsmnt(const char *name)
 
 #ifdef CONFIG_SMP
 out_free_devname:
-	kfree(mnt->mnt_devname);
+	kfree_const(mnt->mnt_devname);
 #endif
 out_free_id:
 	mnt_free_id(mnt);
@@ -692,7 +692,7 @@ static void free_vfsmnt(struct mount *mnt)
 #else
 	kfree(mnt->mnt.data);
 #endif
-	kfree(mnt->mnt_devname);
+	kfree_const(mnt->mnt_devname);
 #ifdef CONFIG_SMP
 	free_percpu(mnt->mnt_pcp);
 #endif
