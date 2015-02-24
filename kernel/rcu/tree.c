@@ -1678,7 +1678,6 @@ static int rcu_gp_init(struct rcu_state *rsp)
 	struct rcu_node *rnp = rcu_get_root(rsp);
 
 	ACCESS_ONCE(rsp->gp_activity) = jiffies;
-	rcu_bind_gp_kthread();
 	raw_spin_lock_irq(&rnp->lock);
 	smp_mb__after_unlock_lock();
 	if (!ACCESS_ONCE(rsp->gp_flags)) {
@@ -1915,6 +1914,7 @@ static int __noreturn rcu_gp_kthread(void *arg)
 	struct rcu_state *rsp = arg;
 	struct rcu_node *rnp = rcu_get_root(rsp);
 
+	rcu_bind_gp_kthread();
 	for (;;) {
 
 		/* Handle grace-period start. */
