@@ -1745,6 +1745,7 @@ static int nfs_update_inode(struct inode *inode, struct nfs_fattr *fattr)
 		nfs_inc_stats(inode, NFSIOS_ATTRINVALIDATE);
 		nfsi->attrtimeo = NFS_MINATTRTIMEO(inode);
 		nfsi->attrtimeo_timestamp = now;
+		/* Set barrier to be more recent than all outstanding updates */
 		nfsi->attr_gencount = nfs_inc_attr_generation_counter();
 	} else {
 		if (cache_revalidated) {
@@ -1756,6 +1757,9 @@ static int nfs_update_inode(struct inode *inode, struct nfs_fattr *fattr)
 			}
 			nfsi->attrtimeo_timestamp = now;
 		}
+		/* Set the barrier to be more recent than this fattr */
+		if ((long)fattr->gencount - (long)nfsi->attr_gencount > 0)
+			nfsi->attr_gencount = fattr->gencount;
 	}
 
 	/* Don't declare attrcache up to date if there were no attrs! */
