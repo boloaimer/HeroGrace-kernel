@@ -6416,7 +6416,7 @@ int tcp_conn_request(struct request_sock_ops *rsk_ops,
 		goto drop;
 	}
 
-	req = inet_reqsk_alloc(rsk_ops);
+	req = inet_reqsk_alloc(rsk_ops, sk);
 	if (!req)
 		goto drop;
 
