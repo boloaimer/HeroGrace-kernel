@@ -145,7 +145,7 @@ static bool tcp_fastopen_create_child(struct sock *sk,
 	req->sk = NULL;
 
 	child = inet_csk(sk)->icsk_af_ops->syn_recv_sock(sk, skb, req, NULL);
-	if (child == NULL)
+	if (!child)
 		return false;
 
 	spin_lock(&queue->fastopenq->lock);
@@ -244,7 +244,7 @@ static bool tcp_fastopen_create_child(struct sock *sk,
 	bh_unlock_sock(meta_sk);
 #endif
 	sock_put(child);
-	WARN_ON(req->sk == NULL);
+	WARN_ON(!req->sk);
 	return true;
 }
 EXPORT_SYMBOL(tcp_fastopen_create_child);
@@ -264,7 +264,7 @@ static bool tcp_fastopen_queue_check(struct sock *sk)
 	 * temporarily vs a server not supporting Fast Open at all.
 	 */
 	fastopenq = inet_csk(sk)->icsk_accept_queue.fastopenq;
-	if (fastopenq == NULL || fastopenq->max_qlen == 0)
+	if (!fastopenq || fastopenq->max_qlen == 0)
 		return false;
 
 	if (fastopenq->qlen >= fastopenq->max_qlen) {
