@@ -313,6 +313,14 @@ extern int tcp_memory_pressure;
 extern int sysctl_tcp_delack_seg;
 extern int sysctl_tcp_use_userconfig;
 
+/* optimized version of sk_under_memory_pressure() for TCP sockets */
+static inline bool tcp_under_memory_pressure(const struct sock *sk)
+{
+	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
+		return !!sk->sk_cgrp->memory_pressure;
+
+	return tcp_memory_pressure;
+}
 /*
  * The next routines deal with comparing 32 bit unsigned ints
  * and worry about wraparound (automatic with unsigned arithmetic).
