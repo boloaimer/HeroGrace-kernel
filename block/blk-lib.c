@@ -26,6 +26,13 @@ static void bio_batch_end_io(struct bio *bio, int err)
 	bio_put(bio);
 }
 
+/*
+ * Ensure that max discard sectors doesn't overflow bi_size and hopefully
+ * it is of the proper granularity as long as the granularity is a power
+ * of two.
+ */
+#define MAX_BIO_SECTORS ((1U << 31) >> 9)
+
 static struct bio *next_bio(struct bio *bio, unsigned int nr_pages,
 		int type, gfp_t gfp)
 {
@@ -46,8 +53,6 @@ int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 	struct request_queue *q = bdev_get_queue(bdev);
 	struct bio *bio = *biop;
 	int type = REQ_WRITE | REQ_DISCARD | REQ_PRIO;
-	unsigned int max_discard_sectors, granularity;
-	int alignment;
 	sector_t bs_mask;
 
 	if (!q)
@@ -60,21 +65,6 @@ int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 	if ((sector | nr_sects) & bs_mask)
 		return -EINVAL;
 
-	/* Zero-sector (unknown) and one-sector granularities are the same. */
-	granularity = max(q->limits.discard_granularity >> 9, 1U);
-	alignment = (bdev_discard_alignment(bdev) >> 9) % granularity;
-
-	/*
-	 * Ensure that max_discard_sectors is of the proper
-	 * granularity, so that requests stay aligned after a split.
-	 */
-	max_discard_sectors = min(q->limits.max_discard_sectors, UINT_MAX >> 9);
-	max_discard_sectors -= max_discard_sectors % granularity;
-	if (unlikely(!max_discard_sectors)) {
-		/* Avoid infinite loop below. Being cautious never hurts. */
-		return -EOPNOTSUPP;
-	}
-
 	if (flags & BLKDEV_DISCARD_SECURE) {
 		if (!blk_queue_secdiscard(q))
 			return -EOPNOTSUPP;
@@ -86,23 +76,10 @@ int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 
 	while (nr_sects) {
 		unsigned int req_sects;
-		sector_t end_sect, tmp;
+		sector_t end_sect;
 
-		req_sects = min_t(sector_t, nr_sects, max_discard_sectors);
-
-		/**
-		 * If splitting a request, and the next starting sector would be
-		 * misaligned, stop the discard at the previous aligned sector.
-		 */
+		req_sects = min_t(sector_t, nr_sects, MAX_BIO_SECTORS);
 		end_sect = sector + req_sects;
-		tmp = end_sect;
-		if (req_sects < nr_sects &&
-		    sector_div(tmp, granularity) != alignment) {
-			end_sect = end_sect - alignment;
-			sector_div(end_sect, granularity);
-			end_sect = end_sect * granularity + alignment;
-			req_sects = end_sect - sector;
-		}
 
 		bio = next_bio(bio, 1, type, gfp_mask);
 		bio->bi_iter.bi_sector = sector;
@@ -185,10 +162,8 @@ int blkdev_issue_write_same(struct block_device *bdev, sector_t sector,
 	if (!q)
 		return -ENXIO;
 
-	max_write_same_sectors = q->limits.max_write_same_sectors;
-
-	if (max_write_same_sectors == 0)
-		return -EOPNOTSUPP;
+	/* Ensure that max_write_same_sectors doesn't overflow bi_size */
+	max_write_same_sectors = UINT_MAX >> 9;
 
 	atomic_set(&bb.done, 1);
 	bb.flags = 1 << BIO_UPTODATE;
