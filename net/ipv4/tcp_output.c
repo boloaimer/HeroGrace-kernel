@@ -1186,9 +1186,6 @@ static
 #endif
 void tcp_set_skb_tso_segs(struct sk_buff *skb, unsigned int mss_now)
 {
-	/* Make sure we own this skb before messing gso_size/gso_segs */
-	WARN_ON_ONCE(skb_cloned(skb));
-
 #ifdef CONFIG_MPTCP
 	if (skb->len <= mss_now || (is_meta_sk(sk) && !mptcp_sk_can_gso(sk)) ||
 	    (!is_meta_sk(sk) && !sk_can_gso(sk)) || skb->ip_summed == CHECKSUM_NONE) {
