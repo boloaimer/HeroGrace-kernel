@@ -108,12 +108,12 @@ static void dump_mem(const char *lvl, const char *str, unsigned long bottom,
 	set_fs(fs);
 }
 
-static void dump_backtrace_entry(unsigned long where, unsigned long stack)
+static void dump_backtrace_entry(unsigned long where)
 {
+	/*
+	 * Note that 'where' can have a physical address, but it's not handled.
+	 */
 	print_ip_sym(where);
-	if (in_exception_text(where))
-		dump_mem("", "Exception stack", stack,
-			 stack + sizeof(struct pt_regs), false);
 }
 
 #ifdef CONFIG_SEC_DEBUG_AUTO_SUMMARY
@@ -203,18 +203,24 @@ static void dump_backtrace(struct pt_regs *regs, struct task_struct *tsk)
 
 	while (1) {
 		unsigned long where = frame.pc;
+		unsigned long stack;
 		int ret;
 
+		dump_backtrace_entry(where);
 		ret = unwind_frame(&frame);
 		if (ret < 0)
 			break;
+
 #ifdef CONFIG_RKP_CFP_ROPP
         if ((where != init_pc) && (0x1 == dump_stack_dec)){
             where = where ^ rrk;
         }
 #endif
-		dump_backtrace_entry(where, frame.sp);
 
+		stack = frame.sp;
+		if (in_exception_text(where))
+			dump_mem("", "Exception stack", stack,
+				 stack + sizeof(struct pt_regs), false);
 	}
 }
 
@@ -636,8 +642,8 @@ asmlinkage void bad_el0_sync(struct pt_regs *regs, int reason, unsigned int esr)
 	void __user *pc = (void __user *)instruction_pointer(regs);
 	console_verbose();
 
-	pr_crit("Bad EL0 synchronous exception detected on CPU%d, code 0x%08x\n",
-		smp_processor_id(), esr);
+	pr_crit("Bad EL0 synchronous exception detected on CPU%d, code 0x%08x -- %s\n",
+		smp_processor_id(), esr, esr_get_class_string(esr));
 	__show_regs(regs);
 
 	info.si_signo = SIGILL;
