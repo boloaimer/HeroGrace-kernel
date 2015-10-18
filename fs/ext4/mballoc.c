@@ -4873,6 +4873,7 @@ void ext4_free_blocks(handle_t *handle, struct inode *inode,
 		int is_metadata = flags & EXT4_FREE_BLOCKS_METADATA;
 
 		for (i = 0; i < count; i++) {
+			cond_resched();
 			if (is_metadata)
 				bh = sb_find_get_block(inode->i_sb, block + i);
 			ext4_forget(handle, is_metadata, inode, bh, block + i);
