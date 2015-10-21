@@ -773,13 +773,11 @@ static ssize_t sel_write_access(struct file *file, char *buf, size_t size)
 	if (sscanf(buf, "%s %s %hu", scon, tcon, &tclass) != 3)
 		goto out;
 
-	length = security_context_to_sid(scon, strlen(scon) + 1, &ssid,
-					 GFP_KERNEL);
+	length = security_context_str_to_sid(scon, &ssid, GFP_KERNEL);
 	if (length)
 		goto out;
 
-	length = security_context_to_sid(tcon, strlen(tcon) + 1, &tsid,
-					 GFP_KERNEL);
+	length = security_context_str_to_sid(tcon, &tsid, GFP_KERNEL);
 	if (length)
 		goto out;
 
@@ -861,13 +859,11 @@ static ssize_t sel_write_create(struct file *file, char *buf, size_t size)
 		objname = namebuf;
 	}
 
-	length = security_context_to_sid(scon, strlen(scon) + 1, &ssid,
-					 GFP_KERNEL);
+	length = security_context_str_to_sid(scon, &ssid, GFP_KERNEL);
 	if (length)
 		goto out;
 
-	length = security_context_to_sid(tcon, strlen(tcon) + 1, &tsid,
-					 GFP_KERNEL);
+	length = security_context_str_to_sid(tcon, &tsid, GFP_KERNEL);
 	if (length)
 		goto out;
 
@@ -924,13 +920,11 @@ static ssize_t sel_write_relabel(struct file *file, char *buf, size_t size)
 	if (sscanf(buf, "%s %s %hu", scon, tcon, &tclass) != 3)
 		goto out;
 
-	length = security_context_to_sid(scon, strlen(scon) + 1, &ssid,
-					 GFP_KERNEL);
+	length = security_context_str_to_sid(scon, &ssid, GFP_KERNEL);
 	if (length)
 		goto out;
 
-	length = security_context_to_sid(tcon, strlen(tcon) + 1, &tsid,
-					 GFP_KERNEL);
+	length = security_context_str_to_sid(tcon, &tsid, GFP_KERNEL);
 	if (length)
 		goto out;
 
@@ -982,7 +976,7 @@ static ssize_t sel_write_user(struct file *file, char *buf, size_t size)
 	if (sscanf(buf, "%s %s", con, user) != 2)
 		goto out;
 
-	length = security_context_to_sid(con, strlen(con) + 1, &sid, GFP_KERNEL);
+	length = security_context_str_to_sid(con, &sid, GFP_KERNEL);
 	if (length)
 		goto out;
 
@@ -1042,13 +1036,11 @@ static ssize_t sel_write_member(struct file *file, char *buf, size_t size)
 	if (sscanf(buf, "%s %s %hu", scon, tcon, &tclass) != 3)
 		goto out;
 
-	length = security_context_to_sid(scon, strlen(scon) + 1, &ssid,
-					 GFP_KERNEL);
+	length = security_context_str_to_sid(scon, &ssid, GFP_KERNEL);
 	if (length)
 		goto out;
 
-	length = security_context_to_sid(tcon, strlen(tcon) + 1, &tsid,
-					 GFP_KERNEL);
+	length = security_context_str_to_sid(tcon, &tsid, GFP_KERNEL);
 	if (length)
 		goto out;
 
