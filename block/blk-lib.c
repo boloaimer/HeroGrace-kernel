@@ -26,12 +26,6 @@ static void bio_batch_end_io(struct bio *bio, int err)
 	bio_put(bio);
 }
 
-/*
- * Ensure that max discard sectors doesn't overflow bi_size and hopefully
- * it is of the proper granularity as long as the granularity is a power
- * of two.
- */
-#define MAX_BIO_SECTORS ((1U << 31) >> 9)
 
 static struct bio *next_bio(struct bio *bio, unsigned int nr_pages,
 		int type, gfp_t gfp)
@@ -53,6 +47,8 @@ int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 	struct request_queue *q = bdev_get_queue(bdev);
 	struct bio *bio = *biop;
 	int type = REQ_WRITE | REQ_DISCARD | REQ_PRIO;
+	unsigned int granularity;
+	int alignment;
 	sector_t bs_mask;
 
 	if (!q)
@@ -64,6 +60,10 @@ int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 	bs_mask = (bdev_logical_block_size(bdev) >> 9) - 1;
 	if ((sector | nr_sects) & bs_mask)
 		return -EINVAL;
+		
+	/* Zero-sector (unknown) and one-sector granularities are the same.  */
+	granularity = max(q->limits.discard_granularity >> 9, 1U);
+	alignment = (bdev_discard_alignment(bdev) >> 9) % granularity;
 
 	if (flags & BLKDEV_DISCARD_SECURE) {
 		if (!blk_queue_secdiscard(q))
@@ -76,10 +76,24 @@ int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 
 	while (nr_sects) {
 		unsigned int req_sects;
-		sector_t end_sect;
+		sector_t end_sect, tmp;
 
-		req_sects = min_t(sector_t, nr_sects, MAX_BIO_SECTORS);
+		/* Make sure bi_size doesn't overflow */
+		req_sects = min_t(sector_t, nr_sects, UINT_MAX >> 9);
+
+		/*
+		 * If splitting a request, and the next starting sector would be
+		 * misaligned, stop the discard at the previous aligned sector.
+		 */
 		end_sect = sector + req_sects;
+		tmp = end_sect;
+		if (req_sects < nr_sects &&
+		    sector_div(tmp, granularity) != alignment) {
+			end_sect = end_sect - alignment;
+			sector_div(end_sect, granularity);
+			end_sect = end_sect * granularity + alignment;
+			req_sects = end_sect - sector;
+		}
 
 		bio = next_bio(bio, 1, type, gfp_mask);
 		bio->bi_iter.bi_sector = sector;
