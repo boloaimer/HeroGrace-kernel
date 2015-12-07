@@ -69,6 +69,7 @@
 #include <linux/static_key.h>
 #include <linux/aio.h>
 #include <linux/sched.h>
+#include <linux/cgroup.h>
 
 #include <linux/filter.h>
 #include <linux/rculist_nulls.h>
@@ -311,7 +312,8 @@ struct cg_proto;
   *	@sk_send_head: front of stuff to transmit
   *	@sk_security: used by security modules
   *	@sk_mark: generic packet mark
-  *	@sk_classid: this socket's cgroup classid
+  *	@sk_cgrp_data: cgroup data for this cgroup
+>>>>>>> c19ee5707948 (net: wrap sock->sk_cgrp_prioidx and ->sk_classid inside a struct)
   *	@sk_cgrp: this socket's cgroup-specific proto data
   *	@sk_write_pending: a write to stream socket waits to start
   *	@sk_state_change: callback to indicate change in the state of the sock
@@ -456,7 +458,7 @@ struct sock {
 #endif
 	__u32			sk_mark;
 	kuid_t			sk_uid;
-	u32			sk_classid;
+	struct sock_cgroup_data	sk_cgrp_data;
 	struct cg_proto		*sk_cgrp;
 	/* START_OF_KNOX_NPA */
 	uid_t			knox_uid;
