@@ -4961,10 +4961,7 @@ do_more:
 	    ((flags & EXT4_FREE_BLOCKS_METADATA) ||
 	     !ext4_should_writeback_data(inode))) {
 		struct ext4_free_data *new_entry;
- 		/*
- 		 * blocks being freed are metadata. these blocks shouldn't
- 		 * be used until this transaction is committed
-		 *
+		/*
 		 * We use __GFP_NOFAIL because ext4_free_blocks() is not allowed
 		 * to fail.
 		 */
