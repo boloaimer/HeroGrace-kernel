@@ -2136,8 +2136,6 @@ static int s3c24xx_serial_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	probe_index++;
-
 	dbg("%s: initialising port %p...\n", __func__, ourport);
 
 #ifdef CONFIG_ARM_EXYNOS_DEVFREQ
@@ -2294,6 +2292,8 @@ static int s3c24xx_serial_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to create sysfs file.\n");
 
 	ourport->dbg_mode = 0;
+
+	probe_index++;
 
 	return 0;
 }
