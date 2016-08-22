@@ -918,12 +918,17 @@ void tcp_v4_reqsk_send_ack(struct sock *sk, struct sk_buff *skb,
 			tcp_rsk(req)->snt_isn + 1 : tcp_sk(sk)->snd_nxt;
 #endif
 
+	/* RFC 7323 2.3
+	 * The window field (SEG.WND) of every outgoing segment, with the
+	 * exception of <SYN> segments, MUST be right-shifted by
+	 * Rcv.Wind.Shift bits:
+	 */
 	tcp_v4_send_ack(sock_net(sk), sk, skb, seq,
 			tcp_rsk(req)->rcv_nxt, 
 #ifdef CONFIG_MPTCP
 			0, 
 #endif
-			req->rcv_wnd,
+			req->rcv_wnd >> inet_rsk(req)->rcv_wscale,
 			tcp_time_stamp,
 			req->ts_recent,
 			0,
