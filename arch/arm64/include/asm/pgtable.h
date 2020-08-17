@@ -211,10 +211,12 @@ static inline pte_t pte_mkspecial(pte_t pte)
 {
 	return set_pte_bit(pte, __pgprot(PTE_SPECIAL));
 }
+
 #ifdef CONFIG_TIMA_RKP
 extern  int printk(const char *s, ...);
 extern void panic(const char *fmt, ...);
 #endif /* CONFIG_TIMA_RKP */
+
 static inline void set_pte(pte_t *ptep, pte_t pte)
 {
 #ifdef CONFIG_TIMA_RKP
@@ -367,8 +369,6 @@ static inline int has_transparent_hugepage(void)
 	__pgprot_modify(prot, PTE_ATTRINDX_MASK, PTE_ATTRINDX(MT_NORMAL_NC) | PTE_PXN | PTE_UXN)
 #define pgprot_device(prot) \
 	__pgprot_modify(prot, PTE_ATTRINDX_MASK, PTE_ATTRINDX(MT_DEVICE_nGnRE) | PTE_PXN | PTE_UXN)
-#define pgprot_iotable_init(prot) \
-	__pgprot_modify(prot, PTE_ATTRINDX_MASK, PTE_ATTRINDX(MT_DEVICE_GRE))
 #define __HAVE_PHYS_MEM_ACCESS_PROT
 struct file;
 extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
