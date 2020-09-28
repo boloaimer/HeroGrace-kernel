@@ -224,6 +224,7 @@ static int __init aio_setup(void)
 	aio_mnt = kern_mount(&aio_fs);
 	if (IS_ERR(aio_mnt))
 		panic("Failed to create aio fs mount.");
+
 #ifdef CONFIG_RKP_NS_PROT
 	rkp_set_mnt_flags(aio_mnt, MNT_NOEXEC);
 #else
