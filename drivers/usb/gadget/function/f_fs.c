@@ -2598,6 +2598,9 @@ static int ffs_func_bind(struct usb_configuration *c,
 	struct usb_descriptor_header **ss_descs = NULL;
 	short *inums = NULL;
 	char *raw_descs = NULL;
+	size_t eps_sz = sizeof(*eps)*ffs->eps_count;
+	size_t inums_sz = sizeof(*inums)*ffs->interfaces_count;
+	size_t raw_descs_sz = sizeof(*raw_descs)*(ffs->raw_descs_length);
 
 	ENTER();
 
@@ -2606,7 +2609,6 @@ static int ffs_func_bind(struct usb_configuration *c,
 		return -ENOTSUPP;
 
 	/* Allocate */
-	size_t eps_sz = sizeof(*eps)*ffs->eps_count;
 	eps = kmalloc(eps_sz, GFP_KERNEL);
 	fs_descs = kmalloc(sizeof(*fs_descs)*
 			    (full ? ffs->fs_descs_count + 1 : 0), GFP_KERNEL);
@@ -2614,9 +2616,7 @@ static int ffs_func_bind(struct usb_configuration *c,
 			     (high ? ffs->hs_descs_count + 1 : 0), GFP_KERNEL);
 	ss_descs = kmalloc(sizeof(*ss_descs)*
 			      (super ? ffs->ss_descs_count + 1 : 0), GFP_KERNEL);
-	size_t inums_sz = sizeof(*inums)*ffs->interfaces_count;
 	inums = kmalloc(inums_sz, GFP_KERNEL);
-	size_t raw_descs_sz = sizeof(*raw_descs)*(ffs->raw_descs_length);
 	raw_descs = kmalloc(raw_descs_sz, GFP_KERNEL);
 
 	if (unlikely(!eps || !fs_descs || !hs_descs || !ss_descs || !inums || !raw_descs)) {
