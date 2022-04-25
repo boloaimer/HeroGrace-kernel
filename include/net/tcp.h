@@ -714,6 +714,7 @@ bool tcp_write_xmit(struct sock *sk, unsigned int mss_now, int nonagle,
 void tcp_resume_early_retransmit(struct sock *sk);
 void tcp_rearm_rto(struct sock *sk);
 void tcp_reset(struct sock *sk);
+void tcp_check_space(struct sock *sk);
 #ifdef CONFIG_MPTCP
 void tcp_set_rto(struct sock *sk);
 bool tcp_should_expand_sndbuf(const struct sock *sk);
