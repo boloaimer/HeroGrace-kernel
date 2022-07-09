@@ -1617,8 +1617,6 @@ shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
 	int safe = 0;
 	struct zone *zone = lruvec_zone(lruvec);
 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
-	bool force_reclaim = false;
-	enum ttu_flags ttu = TTU_UNMAP;
 
 	while (unlikely(too_many_isolated(zone, file, sc, safe))) {
 		congestion_wait(BLK_RW_ASYNC, HZ/10);
@@ -1657,15 +1655,10 @@ shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
 	if (nr_taken == 0)
 		return 0;
 
-	if (need_memory_boosting(zone)) {
-		force_reclaim = true;
-		ttu |= TTU_IGNORE_ACCESS;
-	}
-
-	nr_reclaimed = shrink_page_list(&page_list, zone, sc, ttu,
+	nr_reclaimed = shrink_page_list(&page_list, zone, sc, TTU_UNMAP,
 				&nr_dirty, &nr_unqueued_dirty, &nr_congested,
 				&nr_writeback, &nr_immediate,
-				force_reclaim);
+				false);
 
 	spin_lock_irq(&zone->lru_lock);
 
@@ -2015,7 +2008,7 @@ enum mem_boost {
 };
 static int mem_boost_mode = NO_BOOST;
 static unsigned long last_mode_change;
-static bool memory_boosting_disabled = false;
+static bool am_app_launch = false;
 
 #define MEM_BOOST_MAX_TIME (5 * HZ) /* 5 sec */
 
@@ -2082,27 +2075,63 @@ static ssize_t mem_boost_mode_store(struct kobject *kobj,
 	return count;
 }
 
-static ssize_t disable_mem_boost_show(struct kobject *kobj,
-				    struct kobj_attribute *attr, char *buf)
+ATOMIC_NOTIFIER_HEAD(am_app_launch_notifier);
+
+int am_app_launch_notifier_register(struct notifier_block *nb)
+{
+	return atomic_notifier_chain_register(&am_app_launch_notifier, nb);
+}
+
+int am_app_launch_notifier_unregister(struct notifier_block *nb)
+{
+	return  atomic_notifier_chain_unregister(&am_app_launch_notifier, nb);
+}
+
+static ssize_t am_app_launch_show(struct kobject *kobj,
+				  struct kobj_attribute *attr, char *buf)
 {
 	int ret;
 
-	ret = memory_boosting_disabled ? 1 : 0;
+	ret = am_app_launch ? 1 : 0;
 	return sprintf(buf, "%d\n", ret);
 }
 
-static ssize_t disable_mem_boost_store(struct kobject *kobj,
-				     struct kobj_attribute *attr,
-				     const char *buf, size_t count)
+static int notify_app_launch_started(void)
+{
+	trace_printk("am_app_launch started\n");
+	atomic_notifier_call_chain(&am_app_launch_notifier, 1, NULL);
+	return 0;
+}
+
+static int notify_app_launch_finished(void)
+{
+	trace_printk("am_app_launch finished\n");
+	atomic_notifier_call_chain(&am_app_launch_notifier, 0, NULL);
+	return 0;
+}
+
+static ssize_t am_app_launch_store(struct kobject *kobj,
+				   struct kobj_attribute *attr,
+				   const char *buf, size_t count)
 {
 	int mode;
 	int err;
+	bool am_app_launch_new;
 
 	err = kstrtoint(buf, 10, &mode);
 	if (err || (mode != 0 && mode != 1))
 		return -EINVAL;
 
-	memory_boosting_disabled = mode ? true : false;
+	am_app_launch_new = mode ? true : false;
+	trace_printk("am_app_launch %d -> %d\n", am_app_launch,
+		     am_app_launch_new);
+	if (am_app_launch != am_app_launch_new) {
+		if (am_app_launch_new)
+			notify_app_launch_started();
+		else
+			notify_app_launch_finished();
+	}
+	am_app_launch = am_app_launch_new;
 
 	return count;
 }
@@ -2111,16 +2140,16 @@ static ssize_t disable_mem_boost_store(struct kobject *kobj,
 	static struct kobj_attribute _name##_attr = \
 		__ATTR(_name, 0644, _name##_show, _name##_store)
 MEM_BOOST_ATTR(mem_boost_mode);
-MEM_BOOST_ATTR(disable_mem_boost);
+MEM_BOOST_ATTR(am_app_launch);
 
-static struct attribute *mem_boost_attrs[] = {
+static struct attribute *vmscan_attrs[] = {
 	&mem_boost_mode_attr.attr,
-	&disable_mem_boost_attr.attr,
+	&am_app_launch_attr.attr,
 	NULL,
 };
 
-static struct attribute_group mem_boost_attr_group = {
-	.attrs = mem_boost_attrs,
+static struct attribute_group vmscan_attr_group = {
+	.attrs = vmscan_attrs,
 	.name = "vmscan",
 };
 #endif
@@ -2135,9 +2164,6 @@ static inline bool need_memory_boosting(struct zone *zone)
 	bool ret;
 
 	test_and_set_mem_boost_timeout();
-
-	if (memory_boosting_disabled)
-		return false;
 
 	switch (mem_boost_mode) {
 	case BOOST_HIGH:
@@ -3835,8 +3861,8 @@ static int __init kswapd_init(void)
  		kswapd_run(nid);
 	hotcpu_notifier(cpu_callback, 0);
 #ifdef CONFIG_SYSFS
-	if (sysfs_create_group(mm_kobj, &mem_boost_attr_group))
-		pr_err("vmscan: register mem boost sysfs failed\n");
+	if (sysfs_create_group(mm_kobj, &vmscan_attr_group))
+		pr_err("vmscan: register sysfs failed\n");
 #endif
 	return 0;
 }
