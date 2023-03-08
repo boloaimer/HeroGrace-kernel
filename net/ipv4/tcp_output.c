@@ -3193,7 +3193,7 @@ struct sk_buff *tcp_make_synack(struct sock *sk, struct dst_entry *dst,
 	tcp_options_write((__be32 *)(th + 1), tp, &opts);
 #endif
 	th->doff = (tcp_header_size >> 2);
-	TCP_INC_STATS_BH(sock_net(sk), TCP_MIB_OUTSEGS);
+	TCP_INC_STATS(sock_net(sk), TCP_MIB_OUTSEGS);
 
 #ifdef CONFIG_TCP_MD5SIG
 	/* Okay, we have all we need - do the md5 hash if needed */
