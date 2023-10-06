@@ -174,8 +174,10 @@ azx_assign_device(struct azx *chip, struct snd_pcm_substream *substream)
 	int dev, i, nums;
 	struct azx_dev *res = NULL;
 	/* make a non-zero unique key for the substream */
-	int key = (substream->pcm->device << 16) | (substream->number << 2) |
-		(substream->stream + 1);
+	int key = (substream->number << 2) | (substream->stream + 1);
+
+	if (substream->pcm)
+		key |= (substream->pcm->device << 16);
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
 		dev = chip->playback_index_offset;
