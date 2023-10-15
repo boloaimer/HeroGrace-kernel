@@ -2679,9 +2679,9 @@ extern int dhd_check_module_b90(void);
 #define BCM4359_MODULE_TYPE_B90B 1
 #define BCM4359_MODULE_TYPE_B90S 2
 #endif /* defined(SUPPORT_MULTIPLE_MODULE_CIS) && defined(USE_CID_CHECK) */
-#if defined(USE_CID_CHECK)
+#if defined(SUPPORT_BCM4361_MIXED_MODULES) && defined(USE_CID_CHECK)
 extern int dhd_check_module_bcm(char *module_type, int index, bool *is_murata_fem);
-#endif /* defined(USE_CID_CHECK) */
+#endif /* defined(SUPPORT_BCM4361_MIXED_MODULES) && defined(USE_CID_CHECK) */
 #else
 static INLINE int dhd_read_cis(dhd_pub_t *dhdp) { return 0; }
 static INLINE void dhd_clear_cis(dhd_pub_t *dhdp) { }
