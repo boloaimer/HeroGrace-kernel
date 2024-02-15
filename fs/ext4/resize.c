@@ -1523,7 +1523,8 @@ exit_journal:
 		int gdb_num_end = ((group + flex_gd->count - 1) /
 				   EXT4_DESC_PER_BLOCK(sb));
 		int meta_bg = EXT4_HAS_INCOMPAT_FEATURE(sb,
-				EXT4_FEATURE_INCOMPAT_META_BG);
+				EXT4_FEATURE_INCOMPAT_META_BG) &&
+				gdb_num >= le32_to_cpu(es->s_first_meta_bg);
 		sector_t padding_blocks = meta_bg ? 0 : sbi->s_sbh->b_blocknr -
 					 ext4_group_first_block_no(sb, 0);
 		sector_t old_gdb = 0;
