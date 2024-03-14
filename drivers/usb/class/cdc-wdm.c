@@ -450,6 +450,7 @@ outnl:
 static int clear_wdm_read_flag(struct wdm_device *desc)
 {
 	int rv = 0;
+	int used;
 
 	clear_bit(WDM_READ, &desc->flags);
 
@@ -457,7 +458,10 @@ static int clear_wdm_read_flag(struct wdm_device *desc)
 	if (!desc->resp_count || !--desc->resp_count)
 		goto out;
 
-	set_bit(WDM_RESPONDING, &desc->flags);
+	used = test_and_set_bit(WDM_RESPONDING, &desc->flags);
+	if (used)
+		goto out;
+
 	spin_unlock_irq(&desc->iuspin);
 	rv = usb_submit_urb(desc->response, GFP_KERNEL);
 	spin_lock_irq(&desc->iuspin);
