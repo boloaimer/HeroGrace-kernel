@@ -1380,14 +1380,16 @@ static ssize_t tun_put_user(struct tun_struct *tun,
 			else if (sinfo->gso_type & SKB_GSO_TCPV6)
 				gso.gso_type = VIRTIO_NET_HDR_GSO_TCPV6;
 			else {
-				pr_err("unexpected GSO type: "
-				       "0x%x, gso_size %d, hdr_len %d\n",
-				       sinfo->gso_type, gso.gso_size,
-				       gso.hdr_len);
-				print_hex_dump(KERN_ERR, "tun: ",
-					       DUMP_PREFIX_NONE,
-					       16, 1, skb->head,
-					       min((int)gso.hdr_len, 64), true);
+				if (net_ratelimit()) {
+					pr_err("unexpected GSO type: "
+					       "0x%x, gso_size %d, hdr_len %d\n",
+					       sinfo->gso_type, gso.gso_size,
+					       gso.hdr_len);
+					print_hex_dump(KERN_ERR, "tun: ",
+						       DUMP_PREFIX_NONE,
+						       16, 1, skb->head,
+						       min((int)gso.hdr_len, 64), true);
+				}
 				WARN_ON_ONCE(1);
 				return -EINVAL;
 			}
