@@ -221,10 +221,8 @@ static int crypto_report(struct sk_buff *in_skb, struct nlmsghdr *in_nlh,
 	info.nlmsg_flags = 0;
 
 	err = crypto_report_alg(alg, &info);
-	if (err) {
-		kfree_skb(skb);
+	if (err)
 		return err;
-	}
 
 	return nlmsg_unicast(crypto_nlsk, skb, NETLINK_CB(in_skb).portid);
 }
