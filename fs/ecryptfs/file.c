@@ -273,7 +273,7 @@ static void ecryptfs_set_rapages(struct file *file, unsigned int flag)
 	if (!flag)
 		file->f_ra.ra_pages = 0;
 	else
-		file->f_ra.ra_pages = (unsigned int)file->f_mapping->backing_dev_info->ra_pages;
+		file->f_ra.ra_pages = inode_to_bdi(file->f_mapping->host)->ra_pages;
 }
 
 static int ecryptfs_set_fmpinfo(struct file *file, struct inode *inode, unsigned int set_flag)
