@@ -31,7 +31,7 @@
 #include "ecryptfs_dek.h"
 
 
-extern spinlock_t inode_sb_list_lock;
+//extern spinlock_t inode_sb_list_lock;
 static int ecryptfs_mm_debug = 0;
 DEFINE_MUTEX(ecryptfs_mm_mutex);
 
@@ -204,7 +204,8 @@ static void ecryptfs_mm_drop_pagecache(struct super_block *sb, void *arg)
 			return;
 	}
 	
-	spin_lock(&inode_sb_list_lock);
+	//spin_lock(&inode_sb_list_lock);
+	spin_lock(&sb->s_inode_list_lock);
 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list)
 	{	
         struct ecryptfs_crypt_stat *crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
@@ -223,7 +224,7 @@ static void ecryptfs_mm_drop_pagecache(struct super_block *sb, void *arg)
 		spin_lock(&inode->i_lock);
 		if (inode->i_mapping->nrpages == 0) {
 			spin_unlock(&inode->i_lock);
-			spin_unlock(&inode_sb_list_lock);
+			spin_unlock(&sb->s_inode_list_lock);
 			
 			if(ecryptfs_mm_debug)
 				printk("%s() ecryptfs inode [ino:%lu]\n",__func__, inode->i_ino);
@@ -232,12 +233,13 @@ static void ecryptfs_mm_drop_pagecache(struct super_block *sb, void *arg)
 					!atomic_read(&ecryptfs_inode_to_private(inode)->lower_file_count))
 				ecryptfs_clean_sdp_dek(crypt_stat);
 
-			spin_lock(&inode_sb_list_lock);
+			spin_lock(&sb->s_inode_list_lock);
 			continue;
 		}
 		spin_unlock(&inode->i_lock);
 
-		spin_unlock(&inode_sb_list_lock);
+		//spin_unlock(&inode_sb_list_lock);
+		spin_unlock(&sb->s_inode_list_lock);
 
 		if(ecryptfs_mm_debug)
 			printk(KERN_ERR "inode number: %lu i_mapping: %p [%s] userid:%d\n",inode->i_ino,
@@ -254,9 +256,11 @@ static void ecryptfs_mm_drop_pagecache(struct super_block *sb, void *arg)
 			if(crypt_stat->flags & ECRYPTFS_DEK_IS_SENSITIVE)
 				ecryptfs_clean_sdp_dek(crypt_stat);	
 		}
-		spin_lock(&inode_sb_list_lock);
+		//spin_lock(&inode_sb_list_lock);
+		spin_lock(&sb->s_inode_list_lock);
 	}
-	spin_unlock(&inode_sb_list_lock);
+	//spin_unlock(&inode_sb_list_lock);
+	spin_unlock(&sb->s_inode_list_lock);
 }
 
 static int ecryptfs_mm_task(void *arg)
