@@ -600,7 +600,6 @@ static struct scsi_disk *scsi_disk_get(struct gendisk *disk)
 	mutex_unlock(&sd_ref_mutex);
 	return sdkp;
 }
-EXPORT_SYMBOL(scsi_disk_get_from_dev);
 
 void scsi_disk_put(struct scsi_disk *sdkp)
 {

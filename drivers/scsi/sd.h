@@ -280,7 +280,6 @@ static inline void sd_dif_complete(struct scsi_cmnd *cmd, unsigned int a)
 
 #endif /* CONFIG_BLK_DEV_INTEGRITY */
 
-struct scsi_disk *scsi_disk_get_from_dev(struct device *dev);
 void scsi_disk_put(struct scsi_disk *sdkp);
 
 #endif /* _SCSI_DISK_H */

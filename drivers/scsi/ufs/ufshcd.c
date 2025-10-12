@@ -5196,7 +5196,7 @@ static int ufshcd_reset_and_restore(struct ufs_hba *hba)
 
 			dev_err(hba->dev, "%s: UFS reset done and check FS callback.\n", __func__);
 			__shost_for_each_device(sdev, host) {
-				sdkp = scsi_disk_get_from_dev(&sdev->sdev_gendev);
+				sdkp = dev_get_drvdata(&sdev->sdev_gendev);
 				if (sdkp)
 					gd = sdkp->disk;
 				else
