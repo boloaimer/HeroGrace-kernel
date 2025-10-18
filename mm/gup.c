@@ -225,13 +225,6 @@ retry:
 
 #ifdef CONFIG_CMA_PINPAGE_MIGRATION
 	if (__need_migrate_cma_page(page, vma, address, flags)) {
-		if (__isolate_cma_pinpage(page)) {
-			pr_err("%s: Fail to migrate cma pinpage because it is"
-				"already migrated by compaction. This should"
-				"be migrated to nonmovable userpage\n",
-				__func__);
-			goto bad_page;
-		}
 		pte_unmap_unlock(ptep, ptl);
 		if (__migrate_cma_pinpage(page, vma)) {
 			ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
@@ -243,6 +236,10 @@ retry:
 			update_mmu_cache(vma, address, ptep);
 			pte = *ptep;
 			set_pte_at_notify(mm, address, ptep, pte);
+			if (!pte_present(pte)) {
+				pte_unmap_unlock(ptep, ptl);
+				goto retry;
+			}
 			page = vm_normal_page(vma, address, pte);
 			BUG_ON(!page);
 
