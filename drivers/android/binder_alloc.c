@@ -216,7 +216,6 @@ static int binder_update_page_range(struct binder_alloc *alloc, int allocate,
 		}
 	}
 
-	/* Same as mmget_not_zero() in later kernel versions */
 	if (need_mm && atomic_inc_not_zero(&alloc->vma_vm_mm->mm_users))
 		mm = alloc->vma_vm_mm;
 
