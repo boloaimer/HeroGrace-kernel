@@ -92,23 +92,18 @@ enum {
 	BIG_QUAD_MODE,
 };
 
-static int start_slack_timer(void)
+static void start_slack_timer(void)
 {
-	int ret;
-
 	if (!exynos_hpgov.enabled)
-		return 0;
+		return;
 
 	hrtimer_cancel(&exynos_hpgov.slack_timer);
-	ret = hrtimer_start(&exynos_hpgov.slack_timer,
+	hrtimer_start(&exynos_hpgov.slack_timer,
 		ktime_add(exynos_hpgov.slack_start_time, ktime_set(0,
 			exynos_hpgov.dual_change_ms * NSEC_PER_MSEC)),
 			HRTIMER_MODE_PINNED);
-	if (ret)
-		pr_err("Failed to register slack timer %d\n", ret);
-
-	return ret;
 }
+
 
 static inline int slack_timer_is_queued(void)
 {
