@@ -368,8 +368,8 @@ shrink_slab_node(struct shrink_control *shrinkctl, struct shrinker *shrinker,
 			break;
 		freed += ret;
 
-		total_scan -= ret > nr_to_scan ? ret : nr_to_scan;
 		count_vm_events(SLABS_SCANNED, nr_to_scan);
+		total_scan -= nr_to_scan;
 
 		cond_resched();
 	}
