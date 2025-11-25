@@ -116,7 +116,7 @@ CR_COMPILER="$CR_GCC12"
 fi
 if [ $CR_COMPILER = "5" ]; then
 export CLANG_PATH=$CR_CLANG
-export CROSS_COMPILE=$CR_GCC11
+export CROSS_COMPILE=$CR_GCC9
 export CLANG_TRIPLE=aarch64-linux-gnu-
 compile="make CC=clang ARCH=arm64"
 export PATH=${CLANG_PATH}:${PATH}
