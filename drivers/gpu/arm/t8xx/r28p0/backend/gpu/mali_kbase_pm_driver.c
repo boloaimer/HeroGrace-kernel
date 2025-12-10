@@ -859,9 +859,9 @@ static void kbase_pm_shaders_update_state(struct kbase_device *kbdev)
 			}
 
 			if (backend->shaders_desired) {
-			    if (backend->pm_current_policy->handle_event)
-			        backend->pm_current_policy->handle_event(kbdev,
-				    KBASE_PM_POLICY_EVENT_TIMER_HIT);
+			        if (backend->pm_current_policy->handle_event)
+			                backend->pm_current_policy->handle_event(kbdev,
+				    		KBASE_PM_POLICY_EVENT_TIMER_HIT);
 
 				stt->remaining_ticks = 0;
 				backend->shaders_state = KBASE_SHADERS_ON_CORESTACK_ON;
