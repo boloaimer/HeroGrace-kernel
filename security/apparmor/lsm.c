@@ -354,12 +354,12 @@ static int apparmor_path_chown(struct path *path, kuid_t uid, kgid_t gid)
 	return common_perm(OP_CHOWN, path, AA_MAY_CHOWN, &cond);
 }
 
-static int apparmor_inode_getattr(const struct path *path)
+static int apparmor_inode_getattr(struct vfsmount *mnt, struct dentry *dentry)
 {
-	if (!mediated_filesystem(path->dentry))
+	if (!mediated_filesystem(dentry->d_inode))
 		return 0;
 
-	return common_perm_mnt_dentry(OP_GETATTR, path->mnt, path->dentry,
+	return common_perm_mnt_dentry(OP_GETATTR, mnt, dentry,
 				      AA_MAY_META_READ);
 }
 

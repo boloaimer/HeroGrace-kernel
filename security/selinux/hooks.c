@@ -1807,7 +1807,7 @@ static inline int dentry_has_perm(const struct cred *cred,
    the path to help the auditing code to more easily generate the
    pathname if needed. */
 static inline int path_has_perm(const struct cred *cred,
-				const struct path *path,
+				struct path *path,
 				u32 av)
 {
 	struct inode *inode = path->dentry->d_inode;
@@ -3354,15 +3354,21 @@ static int selinux_inode_setattr(struct dentry *dentry, struct iattr *iattr)
 	return dentry_has_perm(cred, dentry, av);
 }
 
-static int selinux_inode_getattr(const struct path *path)
+static int selinux_inode_getattr(struct vfsmount *mnt, struct dentry *dentry)
 {
+	const struct cred *cred = current_cred();
+	struct path path;
 #ifdef CONFIG_RKP_KDP
 	int rc;
 
 	if ((rc = security_integrity_current()))
 		return rc;
 #endif  /* CONFIG_RKP_KDP */
-	return path_has_perm(current_cred(), path, FILE__GETATTR);
+
+	path.dentry = dentry;
+	path.mnt = mnt;
+
+	return path_has_perm(cred, &path, FILE__GETATTR);
 }
 
 static int selinux_inode_setotherxattr(struct dentry *dentry, const char *name)

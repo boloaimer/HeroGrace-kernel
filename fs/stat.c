@@ -66,7 +66,7 @@ int vfs_getattr(struct path *path, struct kstat *stat)
 {
 	int retval;
 
-	retval = security_inode_getattr(path);
+	retval = security_inode_getattr(path->mnt, path->dentry);
 	if (retval)
 		return retval;
 	return vfs_getattr_nosec(path, stat);

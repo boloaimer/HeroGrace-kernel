@@ -138,9 +138,10 @@ static int tomoyo_bprm_check_security(struct linux_binprm *bprm)
  *
  * Returns 0 on success, negative value otherwise.
  */
-static int tomoyo_inode_getattr(const struct path *path)
+static int tomoyo_inode_getattr(struct vfsmount *mnt, struct dentry *dentry)
 {
-	return tomoyo_path_perm(TOMOYO_TYPE_GETATTR, path, NULL);
+	struct path path = { mnt, dentry };
+	return tomoyo_path_perm(TOMOYO_TYPE_GETATTR, &path, NULL);
 }
 
 /**
