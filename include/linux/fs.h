@@ -2194,7 +2194,6 @@ struct filename {
 	const char		*name;	/* pointer to actual string */
 	const __user char	*uptr;	/* original userland pointer */
 	struct audit_names	*aname;
-	int			refcnt;
 	bool			separate; /* should "name" be freed? */
 };
 
@@ -2217,7 +2216,6 @@ extern int filp_close(struct file *, fl_owner_t id);
 extern struct filename *getname_flags(const char __user *, int, int *);
 extern struct filename *getname(const char __user *);
 extern struct filename *getname_kernel(const char *);
-extern void putname(struct filename *name);
 
 enum {
 	FILE_CREATED = 1,
@@ -2238,8 +2236,15 @@ extern void __init vfs_caches_init(unsigned long);
 
 extern struct kmem_cache *names_cachep;
 
+extern void final_putname(struct filename *name);
+
 #define __getname()		kmem_cache_alloc(names_cachep, GFP_KERNEL)
 #define __putname(name)		kmem_cache_free(names_cachep, (void *)(name))
+#ifndef CONFIG_AUDITSYSCALL
+#define putname(name)		final_putname(name)
+#else
+extern void putname(struct filename *name);
+#endif
 
 #ifdef CONFIG_BLOCK
 extern int register_blkdev(unsigned int, const char *);
