@@ -289,7 +289,7 @@ xfs_readlink_by_handle(
 		return PTR_ERR(dentry);
 
 	/* Restrict this handle operation to symlinks only. */
-	if (!d_is_symlink(dentry)) {
+	if (!S_ISLNK(dentry->d_inode->i_mode)) {
 		error = -EINVAL;
 		goto out_dput;
 	}
