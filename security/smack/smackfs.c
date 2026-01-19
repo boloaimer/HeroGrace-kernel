@@ -2452,7 +2452,7 @@ static int __init init_smk_fs(void)
 	int err;
 	int rc;
 
-	if (!security_module_enable("smack"))
+	if (!security_module_enable(&smack_ops))
 		return 0;
 
 	err = smk_init_sysfs();

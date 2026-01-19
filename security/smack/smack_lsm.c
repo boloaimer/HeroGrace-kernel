@@ -388,11 +388,17 @@ static int smk_ptrace_rule_check(struct task_struct *tracer,
  */
 static int smack_ptrace_access_check(struct task_struct *ctp, unsigned int mode)
 {
+	int rc;
 	struct smack_known *skp;
+
+	rc = cap_ptrace_access_check(ctp, mode);
+	if (rc != 0)
+		return rc;
 
 	skp = smk_of_task_struct(ctp);
 
-	return smk_ptrace_rule_check(current, skp, mode, __func__);
+	rc = smk_ptrace_rule_check(current, skp, mode, __func__);
+	return rc;
 }
 
 /**
@@ -407,6 +413,10 @@ static int smack_ptrace_traceme(struct task_struct *ptp)
 {
 	int rc;
 	struct smack_known *skp;
+
+	rc = cap_ptrace_traceme(ptp);
+	if (rc != 0)
+		return rc;
 
 	skp = smk_of_task(current_security());
 
@@ -663,6 +673,10 @@ static int smack_bprm_set_creds(struct linux_binprm *bprm)
 	struct inode_smack *isp;
 	int rc;
 
+	rc = cap_bprm_set_creds(bprm);
+	if (rc != 0)
+		return rc;
+
 	if (bprm->cred_prepared)
 		return 0;
 
@@ -718,11 +732,12 @@ static void smack_bprm_committing_creds(struct linux_binprm *bprm)
 static int smack_bprm_secureexec(struct linux_binprm *bprm)
 {
 	struct task_smack *tsp = current_security();
+	int ret = cap_bprm_secureexec(bprm);
 
-	if (tsp->smk_task != tsp->smk_forked)
-		return 1;
+	if (!ret && (tsp->smk_task != tsp->smk_forked))
+		ret = 1;
 
-	return 0;
+	return ret;
 }
 
 /*
@@ -1873,7 +1888,12 @@ static void smack_task_getsecid(struct task_struct *p, u32 *secid)
  */
 static int smack_task_setnice(struct task_struct *p, int nice)
 {
-	return smk_curacc_on_task(p, MAY_WRITE, __func__);
+	int rc;
+
+	rc = cap_task_setnice(p, nice);
+	if (rc == 0)
+		rc = smk_curacc_on_task(p, MAY_WRITE, __func__);
+	return rc;
 }
 
 /**
@@ -1885,7 +1905,12 @@ static int smack_task_setnice(struct task_struct *p, int nice)
  */
 static int smack_task_setioprio(struct task_struct *p, int ioprio)
 {
-	return smk_curacc_on_task(p, MAY_WRITE, __func__);
+	int rc;
+
+	rc = cap_task_setioprio(p, ioprio);
+	if (rc == 0)
+		rc = smk_curacc_on_task(p, MAY_WRITE, __func__);
+	return rc;
 }
 
 /**
@@ -1909,7 +1934,12 @@ static int smack_task_getioprio(struct task_struct *p)
  */
 static int smack_task_setscheduler(struct task_struct *p)
 {
-	return smk_curacc_on_task(p, MAY_WRITE, __func__);
+	int rc;
+
+	rc = cap_task_setscheduler(p);
+	if (rc == 0)
+		rc = smk_curacc_on_task(p, MAY_WRITE, __func__);
+	return rc;
 }
 
 /**
@@ -4232,7 +4262,7 @@ static __init int smack_init(void)
 	struct cred *cred;
 	struct task_smack *tsp;
 
-	if (!security_module_enable("smack"))
+	if (!security_module_enable(&smack_ops))
 		return 0;
 
 	tsp = new_task_smack(&smack_known_floor, &smack_known_floor,
@@ -4254,7 +4284,8 @@ static __init int smack_init(void)
 	/*
 	 * Register with LSM
 	 */
-	security_add_hooks(smack_hooks, ARRAY_SIZE(smack_hooks));
+	if (register_security(&smack_ops))
+		panic("smack: Unable to register with kernel.\n");
 
 	return 0;
 }
