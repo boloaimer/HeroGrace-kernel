@@ -108,7 +108,8 @@ static int autofs4_dir_open(struct inode *inode, struct file *file)
 	struct dentry *dentry = file->f_path.dentry;
 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
 
-	DPRINTK("file=%p dentry=%p %pD", file, dentry, dentry);
+	DPRINTK("file=%p dentry=%p %.*s",
+		file, dentry, dentry->d_name.len, dentry->d_name.name);
 
 	if (autofs4_oz_mode(sbi))
 		goto out;
@@ -278,7 +279,8 @@ static int autofs4_mount_wait(struct dentry *dentry, bool rcu_walk)
 	if (ino->flags & AUTOFS_INF_PENDING) {
 		if (rcu_walk)
 			return -ECHILD;
-		DPRINTK("waiting for mount name=%pd", dentry);
+		DPRINTK("waiting for mount name=%.*s",
+			dentry->d_name.len, dentry->d_name.name);
 		status = autofs4_wait(sbi, dentry, NFY_MOUNT);
 		DPRINTK("mount wait done status=%d", status);
 	}
@@ -338,7 +340,8 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
 	int status;
 
-	DPRINTK("dentry=%p %pd", dentry, dentry);
+	DPRINTK("dentry=%p %.*s",
+		dentry, dentry->d_name.len, dentry->d_name.name);
 
 	/* The daemon never triggers a mount. */
 	if (autofs4_oz_mode(sbi))
@@ -425,7 +428,8 @@ static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
 	int status;
 
-	DPRINTK("dentry=%p %pd", dentry, dentry);
+	DPRINTK("dentry=%p %.*s",
+		dentry, dentry->d_name.len, dentry->d_name.name);
 
 	/* The daemon never waits. */
 	if (autofs4_oz_mode(sbi)) {
@@ -500,7 +504,7 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, u
 	struct autofs_info *ino;
 	struct dentry *active;
 
-	DPRINTK("name = %pd", dentry);
+	DPRINTK("name = %.*s", dentry->d_name.len, dentry->d_name.name);
 
 	/* File name too long to exist */
 	if (dentry->d_name.len > NAME_MAX)
@@ -554,7 +558,8 @@ static int autofs4_dir_symlink(struct inode *dir,
 	size_t size = strlen(symname);
 	char *cp;
 
-	DPRINTK("%s <- %pd", symname, dentry);
+	DPRINTK("%s <- %.*s", symname,
+		dentry->d_name.len, dentry->d_name.name);
 
 	if (!autofs4_oz_mode(sbi))
 		return -EACCES;
@@ -696,7 +701,8 @@ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
 	struct autofs_info *p_ino;
 	
-	DPRINTK("dentry %p, removing %pd", dentry, dentry);
+	DPRINTK("dentry %p, removing %.*s",
+		dentry, dentry->d_name.len, dentry->d_name.name);
 
 	if (!autofs4_oz_mode(sbi))
 		return -EACCES;
@@ -738,7 +744,8 @@ static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, umode_t m
 	if (!autofs4_oz_mode(sbi))
 		return -EACCES;
 
-	DPRINTK("dentry %p, creating %pd", dentry, dentry);
+	DPRINTK("dentry %p, creating %.*s",
+		dentry, dentry->d_name.len, dentry->d_name.name);
 
 	BUG_ON(!ino);
 
