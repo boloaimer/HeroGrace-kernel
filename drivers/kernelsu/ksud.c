@@ -101,26 +101,9 @@ void on_post_fs_data(void)
 	pr_info("ksu_file sid: %d\n", ksu_file_sid);
 }
 
-extern void ext4_unregister_sysfs(struct super_block *sb);
 int nuke_ext4_sysfs(const char *mnt)
 {
-	struct path path;
-	int err = kern_path(mnt, 0, &path);
-	if (err) {
-		pr_err("nuke path err: %d\n", err);
-		return err;
-	}
-
-	struct super_block *sb = path.dentry->d_inode->i_sb;
-	const char *name = sb->s_type->name;
-	if (strcmp(name, "ext4") != 0) {
-		pr_info("nuke but module aren't mounted\n");
-		path_put(&path);
-		return -EINVAL;
-	}
-
-	ext4_unregister_sysfs(sb);
-	path_put(&path);
+	pr_info("%s: feature not implemented!\n", __func__);
 	return 0;
 }
 
