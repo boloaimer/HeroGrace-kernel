@@ -122,5 +122,3 @@ arch/arm64/kernel/vdso/vdso.so
 Cronos/Out/kernelzip/*
 arch/arm64/boot/dtb.img
 
-# KSU
-drivers/kernelsu
