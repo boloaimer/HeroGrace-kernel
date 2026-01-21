@@ -110,30 +110,9 @@ void on_post_fs_data(void)
 	is_boot_phase = false;
 }
 
-extern void ext4_unregister_sysfs(struct super_block *sb);
 int nuke_ext4_sysfs(const char *mnt)
 {
-	struct path path;
-	struct super_block *sb = NULL;
-	const char *name = NULL;
-	int err;
-	
-	err = kern_path(mnt, 0, &path);
-	if (err) {
-		pr_err("nuke path err: %d\n", err);
-		return err;
-	}
-
-	sb = path.dentry->d_inode->i_sb;
-	name = sb->s_type->name;
-	if (strcmp(name, "ext4") != 0) {
-		pr_info("nuke but module aren't mounted\n");
-		path_put(&path);
-		return -EINVAL;
-	}
-
-	ext4_unregister_sysfs(sb);
-	path_put(&path);
+	pr_info("%s: feature not implemented!\n", __func__);
 	return 0;
 }
 
