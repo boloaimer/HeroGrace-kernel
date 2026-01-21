@@ -289,5 +289,3 @@ why =                                                                        \
 echo-why = $(call escsq, $(strip $(why)))
 endif
 
-# KernelSU
-$(shell cd "$(srctree)" && ./scripts/fetch-latest-kernelsu.sh)
