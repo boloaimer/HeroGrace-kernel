@@ -271,7 +271,7 @@ static int ksu_task_fix_setuid(struct cred *new, const struct cred *old,
 	return ksu_handle_setuid(new, old);
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 2, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)
 #include <linux/lsm_hooks.h>
 static struct security_hook_list ksu_hooks[] = {
 	LSM_HOOK_INIT(inode_rename, ksu_inode_rename),
@@ -293,7 +293,7 @@ static void ksu_lsm_hook_init(void)
 }
 #endif //  < 4.11
 
-#else // 4.2
+#else // 3.18
 
 // selinux_ops (LSM), security_operations struct tampering for ultra legacy
 
@@ -423,7 +423,7 @@ static void ksu_lsm_hook_init(void)
 	return;
 }
 
-#endif // < 4.2
+#endif // < 3.18
 
 #else
 void __init ksu_lsm_hook_init(void)
