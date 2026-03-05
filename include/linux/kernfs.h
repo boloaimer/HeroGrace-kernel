@@ -179,6 +179,7 @@ struct kernfs_open_file {
 	struct mutex		mutex;
 	int			event;
 	struct list_head	list;
+	char			*prealloc_buf;
 
 	size_t			atomic_write_len;
 	bool			mmapped;
@@ -214,6 +215,13 @@ struct kernfs_ops {
 	 * larger ones are rejected with -E2BIG.
 	 */
 	size_t atomic_write_len;
+	/*
+	 * "prealloc" causes a buffer to be allocated at open for
+	 * all read/write requests.  As ->seq_show uses seq_read()
+	 * which does its own allocation, it is incompatible with
+	 * ->prealloc.  Provide ->read and ->write with ->prealloc.
+	 */
+	bool prealloc;
 	ssize_t (*write)(struct kernfs_open_file *of, char *buf, size_t bytes,
 			 loff_t off);
 
@@ -270,6 +278,7 @@ void kernfs_put(struct kernfs_node *kn);
 
 struct kernfs_node *kernfs_node_from_dentry(struct dentry *dentry);
 struct kernfs_root *kernfs_root_from_sb(struct super_block *sb);
+struct inode *kernfs_get_inode(struct super_block *sb, struct kernfs_node *kn);
 
 struct kernfs_root *kernfs_create_root(struct kernfs_syscall_ops *scops,
 				       unsigned int flags, void *priv);
@@ -344,6 +353,10 @@ static inline struct kernfs_node *kernfs_node_from_dentry(struct dentry *dentry)
 { return NULL; }
 
 static inline struct kernfs_root *kernfs_root_from_sb(struct super_block *sb)
+{ return NULL; }
+
+static inline struct inode *
+kernfs_get_inode(struct super_block *sb, struct kernfs_node *kn)
 { return NULL; }
 
 static inline struct kernfs_root *
