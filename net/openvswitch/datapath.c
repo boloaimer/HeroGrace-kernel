@@ -1157,10 +1157,7 @@ static int ovs_flow_cmd_del(struct sk_buff *skb, struct genl_info *info)
 						     info->snd_seq, 0,
 						     OVS_FLOW_CMD_DEL);
 			rcu_read_unlock();
-			if (WARN_ON_ONCE(err < 0)) {
-				kfree_skb(reply);
-				goto out_free;
-			}
+			BUG_ON(err < 0);
 
 			ovs_notify(&dp_flow_genl_family, reply, info);
 		} else {
@@ -1168,7 +1165,6 @@ static int ovs_flow_cmd_del(struct sk_buff *skb, struct genl_info *info)
 		}
 	}
 
-out_free:
 	ovs_flow_free(flow, true);
 	return 0;
 unlock:
