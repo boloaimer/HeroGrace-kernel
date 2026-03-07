@@ -796,10 +796,7 @@ static struct sk_buff *ovs_flow_cmd_build_info(const struct sw_flow *flow,
 	retval = ovs_flow_cmd_fill_info(flow, dp_ifindex, skb,
 					info->snd_portid, info->snd_seq, 0,
 					cmd);
-	if (WARN_ON_ONCE(retval < 0)) {
-		kfree_skb(skb);
-		skb = ERR_PTR(retval);
-	}
+	BUG_ON(retval < 0);
 	return skb;
 }
 
