@@ -216,6 +216,7 @@ BUILD_GENERATE_CONFIG()
   if [ $CR_KSU = "y" ]; then
     echo " Building KernelSU Kernel"
     echo "CONFIG_KSU=y" >> $CR_DIR/arch/$CR_ARCH/configs/tmp_defconfig
+    echo "CONFIG_KSU_TAMPER_SYSCALL_TABLE=y" >> $CR_DIR/arch/$CR_ARCH/configs/tmp_defconfig
     CR_IMAGE_NAME=$CR_IMAGE_NAME-ksu
     zver=$zver-KernelSU
   else
