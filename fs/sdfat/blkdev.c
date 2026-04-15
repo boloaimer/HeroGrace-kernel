@@ -96,7 +96,6 @@ s32 bdev_check_bdi_valid(struct super_block *sb)
 			fsi->prev_eio |= SDFAT_EIO_BDI;
 			sdfat_log_msg(sb, KERN_ERR, "%s: block device is "
 				"eliminated.(bdi:%p)", __func__, sb->s_bdi);
-			sdfat_debug_warn_on(1);
 		}
 		return -ENXIO;
 	}
@@ -104,25 +103,53 @@ s32 bdev_check_bdi_valid(struct super_block *sb)
 	return 0;
 }
 
+#if IS_BUILTIN(CONFIG_SDFAT_FS)
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 16, 0)
+static inline void __sdfat_blk_flush_plug(void)
+{
+	blk_flush_plug(current->plug, false);
+}
+#else
+static inline void __sdfat_blk_flush_plug(void)
+{
+	blk_flush_plug(current);
+}
+#endif
+
+static void __bdev_readahead(struct super_block *sb, u64 secno, u64 num_secs)
+{
+	u32 sects_per_page = (PAGE_SIZE >> sb->s_blocksize_bits);
+	struct blk_plug plug;
+	u64 i;
+
+	blk_start_plug(&plug);
+	for (i = 0; i < num_secs; i++) {
+		if (i && !(i & (sects_per_page - 1)))
+			__sdfat_blk_flush_plug();
+		sb_breadahead(sb, (sector_t)(secno + i));
+	}
+	blk_finish_plug(&plug);
+}
+#else
+static void __bdev_readahead(struct super_block *sb, u64 secno, u64 num_secs)
+{
+	u64 i;
+
+	for (i = 0; i < num_secs; i++)
+		sb_breadahead(sb, (sector_t)(secno + i));
+}
+#endif
 
 /* Make a readahead request */
 s32 bdev_readahead(struct super_block *sb, u64 secno, u64 num_secs)
 {
 	FS_INFO_T *fsi = &(SDFAT_SB(sb)->fsi);
-	u32 sects_per_page = (PAGE_SIZE >> sb->s_blocksize_bits);
-	struct blk_plug plug;
-	u64 i;
 
 	if (!fsi->bd_opened)
 		return -EIO;
 
-	blk_start_plug(&plug);
-	for (i = 0; i < num_secs; i++) {
-		if (i && !(i & (sects_per_page - 1)))
-			blk_flush_plug(current);
-		sb_breadahead(sb, (sector_t)(secno + i));
-	}
-	blk_finish_plug(&plug);
+	__bdev_readahead(sb, secno, num_secs);
 
 	return 0;
 }

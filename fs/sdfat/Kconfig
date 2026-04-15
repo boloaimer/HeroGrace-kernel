@@ -1,10 +1,10 @@
 config SDFAT_FS
-	tristate
+	tristate "sdFAT support"
 	default y
 	select NLS
-	select NLS_UTF8
-	select NLS_CODEPAGE_437
-	select NLS_ISO8859_1
+#	select NLS_UTF8
+#	select NLS_CODEPAGE_437
+#	select NLS_ISO8859_1
 	help
 	  If you want to use the sdFAT file system, then you must say Y or M
 	  here to inlucde sdFAT support.
@@ -14,20 +14,6 @@ config SDFAT_FS
 
 	  To compile this as a module, choose M here: the module will be called
 	  sdfat_core and sdfat_fs.
-
-config SDFAT_USE_FOR_EXFAT
-	bool "Register sdFAT as exFAT"
-	default n
-	depends on SDFAT_FS && !EXFAT_FS
-	help
-	  If you want to register sdFAT as available for exFAT, say Y.
-
-config SDFAT_USE_FOR_VFAT
-	bool "Register sdFAT as VFAT"
-	default n
-	depends on SDFAT_FS && !VFAT_FS
-	help
-	  If you want to register sdFAT as available for VFAT, say Y.
 
 config SDFAT_DELAYED_META_DIRTY
 	bool "Enable delayed metadata dirty"
@@ -69,15 +55,18 @@ config SDFAT_CHECK_RO_ATTR
 
 config SDFAT_ALIGNED_MPAGE_WRITE
 	bool "Enable supporting aligned mpage_write"
-	default y
+	default y if SDFAT_FS=y
+	default n if SDFAT_FS=m
 	depends on SDFAT_FS
 
 config SDFAT_VIRTUAL_XATTR
 	bool "Virtual xattr support for sdFAT"
-	default y
+	default n
 	depends on SDFAT_FS
 	help
-	  To support virtual xattr.
+	  If you enable this feature, it supports virtual xattr.
+	  This feature will be deprecated because it might be the same with
+	  "context" mount option.
 
 config SDFAT_VIRTUAL_XATTR_SELINUX_LABEL
 	string "Default string for SELinux label"
@@ -113,5 +102,10 @@ config SDFAT_DBG_BUGON
 
 config SDFAT_STATISTICS
 	bool "enable statistics for bigdata"
+	depends on SDFAT_FS
+	default y
+
+config SDFAT_UEVENT
+	bool "enable uevent"
 	depends on SDFAT_FS
 	default y
