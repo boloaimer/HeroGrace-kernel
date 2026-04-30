@@ -3,6 +3,7 @@
 
 #include <linux/cred.h>
 #include <linux/types.h>
+#include <linux/sched.h>
 
 #define KSU_INVALID_APPID -1
 #define KSU_PER_USER_RANGE 100000

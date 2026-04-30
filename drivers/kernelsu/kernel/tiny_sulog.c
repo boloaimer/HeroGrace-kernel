@@ -1,5 +1,6 @@
 #include <linux/types.h>
 #include <linux/slab.h>
+#include <linux/sched.h>
 #include <linux/spinlock.h>
 #include <linux/ktime.h>
 #include <linux/cred.h>
