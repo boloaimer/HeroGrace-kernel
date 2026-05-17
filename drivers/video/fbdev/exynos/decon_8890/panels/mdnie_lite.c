@@ -667,7 +667,7 @@ static ssize_t night_mode_store(struct device *dev,
 		wbuf = &mdnie->tune->night_table[enable].seq[scr_info->index].cmd[scr_info->cr];
 		base_index = mdnie->tune->night_info->max_w * level;
 		for (i = 0; i < mdnie->tune->night_info->max_w; i++) {
-			wbuf[i] = mdnie->tune->night_mode_table[base_index + i];
+			wbuf[i] = mdnie->tune->night_mode_table[mdnie->mode][base_index + i];
 		}
 	}
 

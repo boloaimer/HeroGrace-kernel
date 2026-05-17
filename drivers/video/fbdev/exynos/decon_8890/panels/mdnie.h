@@ -160,7 +160,7 @@ struct mdnie_tune {
 	struct mdnie_color_lens_info *color_lens_info;
 	unsigned char **coordinate_table;
 	unsigned char **adjust_ldu_table;
-	unsigned char *night_mode_table;
+	unsigned char **night_mode_table;
 	unsigned char *color_lens_table;
 	int (*get_hbm_index)(int);
 	int (*color_offset[])(int, int);
