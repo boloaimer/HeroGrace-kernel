@@ -107,6 +107,7 @@
 #define BATT_MISC_EVENT_WIRELESS_BACKPACK_TYPE	0x00000002
 #define BATT_MISC_EVENT_TIMEOUT_OPEN_TYPE		0x00000004
 #define BATT_MISC_EVENT_HICCUP_TYPE		0x00000020
+#define BATT_MISC_EVENT_FULL_CAPACITY		0x01000000
 
 #define SEC_INPUT_VOLTAGE_0V	0
 #define SEC_INPUT_VOLTAGE_5V	5
@@ -426,6 +427,7 @@ struct sec_battery_info {
 	char* strSbmDataB;
 #endif
 	int fg_reset;
+	int batt_full_capacity;
 };
 
 ssize_t sec_bat_show_attrs(struct device *dev,
@@ -613,6 +615,7 @@ enum {
 	BATT_TEMP_TEST,
 #endif
 	BATT_CURRENT_EVENT,
+	BATT_FULL_CAPACITY,
 };
 
 enum {

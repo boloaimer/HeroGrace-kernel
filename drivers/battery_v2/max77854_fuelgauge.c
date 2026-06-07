@@ -1368,6 +1368,52 @@ static void max77854_set_full_value(struct max77854_fuelgauge_data *fuelgauge,
 }
 #endif
 
+#define FULL_CAPACITY 850
+static int calc_ttf_to_full_capacity(struct max77854_fuelgauge_data *fuelgauge,
+		    union power_supply_propval *val)
+{
+	struct cv_slope *cv_data = fuelgauge->cv_data;
+	int i, cc_time = 0, cv_time = 0;
+	int soc = FULL_CAPACITY;
+	int charge_current = val->intval;
+	int design_cap = fuelgauge->ttf_capacity;
+
+	if (!cv_data || (val->intval <= 0)) {
+		pr_info("%s: no cv_data or val: %d\n", __func__, val->intval);
+		return -1;
+	}
+	for (i = 0; i < fuelgauge->cv_data_lenth; i++) {
+		if (charge_current >= cv_data[i].fg_current)
+			break;
+	}
+	i = i >= fuelgauge->cv_data_lenth ? fuelgauge->cv_data_lenth - 1 : i;
+	if (cv_data[i].soc < soc) {
+		for (i = 0; i < fuelgauge->cv_data_lenth; i++) {
+			if (soc <= cv_data[i].soc)
+				break;
+		}
+		cv_time =
+		    ((cv_data[i - 1].time - cv_data[i].time) * (cv_data[i].soc - soc)
+		     / (cv_data[i].soc - cv_data[i - 1].soc)) + cv_data[i].time;
+	} else {		/* CC mode || NONE */
+		cv_time = cv_data[i].time;
+		cc_time =
+			design_cap * (cv_data[i].soc - soc) / val->intval * 3600 / 1000;
+		pr_debug("%s: cc_time: %d\n", __func__, cc_time);
+		if (cc_time < 0)
+			cc_time = 0;
+	}
+
+	pr_debug("%s: cap: %d, soc: %4d, T: %6d, avg: %4d, cv soc: %4d, i: %4d, val: %d\n",
+	     __func__, design_cap, soc, cv_time + cc_time,
+	     fuelgauge->current_avg, cv_data[i].soc, i, val->intval);
+
+	if (cv_time + cc_time >= 0)
+		return cv_time + cc_time;
+	else
+		return 0;
+}
+
 static int calc_ttf(struct max77854_fuelgauge_data *fuelgauge, union power_supply_propval *val)
 {
 	int i;
@@ -1701,7 +1747,10 @@ static int max77854_fg_get_property(struct power_supply *psy,
 			case POWER_SUPPLY_EXT_PROP_SBM_DATA:				
 				if (!make_fuelgauge_sbm_data(fuelgauge, val))
 					return -ENODATA;
-				break;				
+				break;	
+			case POWER_SUPPLY_EXT_PROP_TTF_FULL_CAPACITY:
+				val->intval = calc_ttf_to_full_capacity(fuelgauge, val);
+				break;			
 			default:
 				return -EINVAL;
 		}		
@@ -2335,7 +2384,8 @@ static int max77854_fuelgauge_probe(struct platform_device *pdev)
 
 	wake_lock_init(&fuelgauge->fg_reset_wake_lock,
 			WAKE_LOCK_SUSPEND, "fg_reset_wake_lock");
-
+	
+	fuelgauge->err_cnt = 0;
 	fuelgauge->initial_update_of_soc = true;
 #if defined(CONFIG_BATTERY_CISD)
 	fuelgauge->valert_count_flag = false;
