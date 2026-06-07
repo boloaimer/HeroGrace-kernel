@@ -3433,7 +3433,7 @@ static void sec_bat_calculate_safety_time(struct sec_battery_info *battery)
 
 static void sec_bat_recov_full_capacity(struct sec_battery_info *battery)
 {
-	sec_bat_set_misc_event(battery, 0, BATT_MISC_EVENT_FULL_CAPACITY);
+	sec_bat_set_misc_event(battery, BATT_MISC_EVENT_FULL_CAPACITY, true);
 
 	if (battery->status == POWER_SUPPLY_STATUS_NOT_CHARGING
 		&& battery->health == POWER_SUPPLY_HEALTH_GOOD) {
@@ -3466,7 +3466,7 @@ static void sec_bat_check_full_capacity(struct sec_battery_info *battery)
 		pr_info("%s : stop charging(%d, %d)\n", __func__, battery->capacity, battery->batt_full_capacity);
 
 		sec_bat_set_misc_event(battery, BATT_MISC_EVENT_FULL_CAPACITY,
-			BATT_MISC_EVENT_FULL_CAPACITY);
+			false);
 		sec_bat_set_charging_status(battery, POWER_SUPPLY_STATUS_NOT_CHARGING);
 		sec_bat_set_charge(battery, SEC_BAT_CHG_MODE_CHARGING_OFF);
 		sec_bat_send_cs100(battery);
