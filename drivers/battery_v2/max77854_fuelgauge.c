@@ -1504,9 +1504,7 @@ static int max77854_fg_get_property(struct power_supply *psy,
 	static int abnormal_current_cnt = 0;
 	union power_supply_propval value;
 	u8 data[2] = {0, 0};
-#if defined(CONFIG_BATTERY_SBM_DATA)
     enum power_supply_ext_property ext_psp = psp;
-#endif
 
 	switch (psp) {
 		/* Cell voltage (VCELL, mV) */
@@ -1741,13 +1739,14 @@ static int max77854_fg_get_property(struct power_supply *psy,
 		val->intval = (fuelgauge->battery_data->Capacity * fuelgauge->fg_resistor / 2) * fuelgauge->raw_capacity;
 		pr_info("%s: Remaining Capacity=%d uAh\n", __func__, val->intval);
 		break;
-#if defined(CONFIG_BATTERY_SBM_DATA)
 	case POWER_SUPPLY_PROP_MAX ... POWER_SUPPLY_EXT_PROP_MAX:
-		switch (ext_psp) {				
+		switch (ext_psp) {		
+#if defined(CONFIG_BATTERY_SBM_DATA)				
 			case POWER_SUPPLY_EXT_PROP_SBM_DATA:				
 				if (!make_fuelgauge_sbm_data(fuelgauge, val))
 					return -ENODATA;
-				break;	
+				break;
+#endif
 			case POWER_SUPPLY_EXT_PROP_TTF_FULL_CAPACITY:
 				val->intval = calc_ttf_to_full_capacity(fuelgauge, val);
 				break;			
@@ -1755,7 +1754,6 @@ static int max77854_fg_get_property(struct power_supply *psy,
 				return -EINVAL;
 		}		
 		break;
-#endif
 	default:
 		return -EINVAL;
 	}
@@ -1773,9 +1771,7 @@ static int max77854_fg_set_property(struct power_supply *psy,
 		container_of(psy, struct max77854_fuelgauge_data, psy_fg);
 	u8 data[2] = {0, 0};
 	static bool low_temp_wa = false;
-#if defined(CONFIG_BATTERY_SBM_DATA)    
 	enum power_supply_ext_property ext_psp = psp;
-#endif
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_STATUS:
@@ -1897,17 +1893,17 @@ static int max77854_fg_set_property(struct power_supply *psy,
 		max77854_bulk_read(fuelgauge->i2c, FILTER_CFG_REG, 2, data);
 		pr_debug("%s: FilterCFG=0x%04X\n", __func__, data[1] << 8 | data[0]);
 		break;
-#if defined(CONFIG_BATTERY_SBM_DATA)
 	case POWER_SUPPLY_PROP_MAX ... POWER_SUPPLY_EXT_PROP_MAX:
 		switch (ext_psp) {
+#if defined(CONFIG_BATTERY_SBM_DATA)
 			case POWER_SUPPLY_EXT_PROP_SBM_DATA:
 				fuelgauge->pdata->sbm_data_type = val->intval;
 				break;
+#endif
 			default:
 				return -EINVAL;
 		}
 		break;
-#endif			
 	default:
 		return -EINVAL;
 	}
