@@ -35,9 +35,12 @@
 /* definitions */
 #define	SEC_SIZEOF_POWER_SUPPLY_TYPE	POWER_SUPPLY_TYPE_MAX
 
+#ifndef CONFIG_GRACE_MODEL
 enum power_supply_ext_property {
 	POWER_SUPPLY_EXT_PROP_TTF_FULL_CAPACITY = POWER_SUPPLY_PROP_MAX,
 };
+#endif
+
 enum sec_battery_voltage_mode {
 	/* average voltage */
 	SEC_BATTERY_VOLTAGE_AVERAGE = 0,

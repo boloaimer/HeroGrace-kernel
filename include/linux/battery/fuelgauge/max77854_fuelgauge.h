@@ -187,8 +187,9 @@ struct max77854_fuelgauge_data {
 	u32 discharge_volt_threshold;
 
 	u32 fg_resistor;
-	
+#ifndef CONFIG_GRACE_MODEL
 	u32 err_cnt;
+#endif
 };
 
 #endif /* __MAX77854_FUELGAUGE_H */
