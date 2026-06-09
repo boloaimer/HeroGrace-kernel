@@ -54,6 +54,7 @@
 #define SEC_BAT_CURRENT_EVENT_LOW_TEMP_SWELLING		0x0010
 #define SEC_BAT_CURRENT_EVENT_HIGH_TEMP_SWELLING	0x0020
 #define SEC_BAT_CURRENT_EVENT_LOW_TEMP				0x0080
+#define SEC_BAT_CURRENT_EVENT_CHARGE_DISABLE		0x0002
 
 #define SIOP_EVENT_NONE 	0x0000
 #define SIOP_EVENT_WPC_CALL 	0x0001
@@ -83,6 +84,7 @@
 
 #define BATT_MISC_EVENT_UNDEFINED_RANGE_TYPE	0x00000001
 #define BATT_MISC_EVENT_BATTERY_HEALTH			0x000F0000
+#define BATT_MISC_EVENT_FULL_CAPACITY		0x01000000
 
 #define BATTERY_HEALTH_SHIFT                16
 enum misc_battery_health {
@@ -368,6 +370,7 @@ struct sec_battery_info {
 	unsigned long lcd_on_total_time;
 	unsigned long lcd_on_time;
 	int aicl_current;
+	int batt_full_capacity;
 };
 
 ssize_t sec_bat_show_attrs(struct device *dev,
@@ -539,6 +542,7 @@ enum {
 #if defined(CONFIG_BATTERY_SWELLING)
 	BATT_SWELLING_CONTROL,
 #endif
+	BATT_FULL_CAPACITY,
 };
 
 enum {
